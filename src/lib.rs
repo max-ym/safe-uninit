@@ -1,18 +1,16 @@
 //! Object of the crate is to allow using safe uninitialized values while Rust Standard Library
 //! gets stabilized features for uninitialized values.
 //! For example, currently (Rust 1.41) on nightly version of a compiler one can see standard
-//! Box::new_uninit() which allows to allocate memory for MaybeUninit values. Basically, this
+//! Box::new_uninit() which allows to allocate memory for MaybeUninit values. Basically, this new
 //! crate allows creating not 'Maybe' but surely uninitialized values that are safe to use
 //! despite they are uninitialized.
 //!
 //! Main trait is SafeUninit that indicated the type which can be safely used without
 //! initialization and without further wrappers. It is implemented for all primitive numerical
-//! types and their atomic variants, for fixed-size arrays of SafeUninit objects of up to 32 values,
+//! types and their atomic variants, for fixed-size arrays of SafeUninit of up to 32 values,
 //! for tuples of SafeUninit objects of up to 12 elements and for unit type `()`.
 //!
-//! This crate is `no_std` but if used with `std` library it extends some types with new
-//! functions that are related to safe uninitialized values. Further extensions are available
-//! for nightly compiler.
+//! This crate also implements traits for `alloc` types where appropriate.
 //!
 //! # Pointers
 //! Pointers are safe to have uninitialized. Even if the values they are pointing to are unsafe.

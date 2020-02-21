@@ -4,14 +4,6 @@ use alloc::collections::VecDeque;
 use alloc::vec::Vec;
 use crate::{SafeUninitWrap, SafeUninit, ResizeUninit};
 
-unsafe impl<T> SafeUninitWrap for Option<T> where T: SafeUninit {
-
-    /// Create safe `Some` value which contains uninitialized value.
-    fn safe_uninit() -> Self {
-        Some(T::safe_uninit())
-    }
-}
-
 unsafe impl<T> ResizeUninit for Vec<T> where T: SafeUninit {
 
     /// Resize the `Vec` as normal `resize_default` function does but instead of

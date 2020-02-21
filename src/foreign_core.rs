@@ -52,6 +52,14 @@ unsafe impl<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> SafeUninit fo
           T5: SafeUninit, T6: SafeUninit, T7: SafeUninit, T8: SafeUninit, T9: SafeUninit,
           T10: SafeUninit, T11: SafeUninit, T12: SafeUninit {}
 
+unsafe impl<T> SafeUninitWrap for Option<T> where T: SafeUninit {
+
+    /// Create safe `Some` value which contains uninitialized value.
+    fn safe_uninit() -> Self {
+        Some(T::safe_uninit())
+    }
+}
+
 unsafe impl<T> SafeUninit for *const T {}
 
 unsafe impl<T> SafeUninit for *mut T {}

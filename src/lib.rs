@@ -13,7 +13,7 @@
 //! This crate also implements traits for `alloc` types where appropriate.
 //!
 //! # Pointers
-//! Pointers are safe to have uninitialized. Even if the values they are pointing to are unsafe.
+//! Pointers are safe to be uninitialized. Even if the values they are pointing to are unsafe.
 //! Firstly, pointers are internally a plain number of type usize which is safe.
 //! Secondly, dereferencing pointers is an unsafe operation anyway and even if pointer
 //! with uninitialized address gets dereferenced this will be done under unsafe block

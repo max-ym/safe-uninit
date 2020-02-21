@@ -1,4 +1,4 @@
-use crate::{SafeUninit, ResizeUninit, SafeUninitWrap};
+use crate::{SafeUninit, SafeUninitWrap};
 use core::sync::atomic::*;
 
 unsafe impl<T0, T1> SafeUninit for (T0, T1)

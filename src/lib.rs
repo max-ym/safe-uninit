@@ -65,7 +65,7 @@ pub unsafe trait SafeUninitWrap: Sized {
 
 /// To be used with `Vec`-like types. Adds `Vec` a capability to resize it's content while leaving
 /// new values uninitialized.
-pub trait ResizeUninit {
+pub unsafe trait ResizeUninit {
 
     fn resize_uninit(&mut self, new_len: usize);
 }

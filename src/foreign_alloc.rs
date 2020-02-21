@@ -12,7 +12,7 @@ unsafe impl<T> SafeUninitWrap for Option<T> where T: SafeUninit {
     }
 }
 
-impl<T> ResizeUninit for Vec<T> where T: SafeUninit {
+unsafe impl<T> ResizeUninit for Vec<T> where T: SafeUninit {
 
     /// Resize the `Vec` as normal `resize_default` function does but instead of
     /// default values use uninitialized ones.
@@ -21,7 +21,7 @@ impl<T> ResizeUninit for Vec<T> where T: SafeUninit {
     }
 }
 
-impl<T> ResizeUninit for VecDeque<T> where T: SafeUninit {
+unsafe impl<T> ResizeUninit for VecDeque<T> where T: SafeUninit {
 
     /// Resize the `VecDeque` as normal `resize_default` function does but instead of
     /// default values use uninitialized ones.

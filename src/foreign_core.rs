@@ -1,4 +1,4 @@
-use crate::{SafeUninit};
+use crate::{SafeUninit, ResizeUninit, SafeUninitWrap};
 use core::sync::atomic::*;
 
 unsafe impl<T0, T1> SafeUninit for (T0, T1)
@@ -105,79 +105,3 @@ impl_safe!(AtomicI32);
 impl_safe!(AtomicI64);
 impl_safe!(AtomicUsize);
 impl_safe!(AtomicIsize);
-
-#[cfg(std)]
-mod std {
-    use std::vec::Vec;
-    use std::collections::*;
-    use std::boxed::Box;
-    use crate::SafeUninit;
-    use std::rc::Rc;
-    use std::sync::{Arc, Mutex, RwLock};
-
-    unsafe impl<T> SafeUninit for Option<T> where T: SafeUninit {
-
-        /// Create safe `Some` value which contains uninitialized value.
-        fn safe_uninit() -> Self {
-            Some(T::safe_uninit())
-        }
-    }
-
-    impl<T> Vec<T> where T: SafeUninit {
-
-        /// Resize the `Vec` as normal `resize_default` function does but instead of
-        /// default values use uninitialized ones.
-        pub fn resize_uninit(&mut self, new_len: usize) {
-            self.resize(new_len, T::safe_uninit())
-        }
-    }
-
-    impl<T> VecDeque<T> where T: SafeUninit {
-
-        /// Resize the `VecDeque` as normal `resize_default` function does but instead of
-        /// default values use uninitialized ones.
-        pub fn resize_uninit(&mut self, new_len: usize) {
-            self.resize(new_len, T::safe_uninit())
-        }
-    }
-
-    impl<T> Box<T> where T: SafeUninit {
-
-        /// `Box::new()` with safe uninitialized value.
-        pub fn new_safe_uninit() -> Self {
-            Box::new(T::safe_uninit())
-        }
-    }
-
-    impl<T> Rc<T> where T: SafeUninit {
-
-        /// `Rc::new()` with safe uninitialized value.
-        pub fn new_safe_uninit() -> Self {
-            Rc::new(T::safe_uninit())
-        }
-    }
-
-    impl<T> Arc<T> where T: SafeUninit {
-
-        /// `Arc::new()` with safe uninitialized value.
-        pub fn new_safe_uninit() -> Self {
-            Arc::new(T::safe_uninit())
-        }
-    }
-
-    impl<T> Mutex<T> where T: SafeUninit {
-
-        /// `Mutex::new()` with safe uninitialized value.
-        pub fn new_safe_uninit() -> Self {
-            Mutex::new(T::safe_uninit())
-        }
-    }
-
-    impl<T> RwLock<T> where T: SafeUninit {
-
-        /// `RwLock::new()` with safe uninitialized value.
-        pub fn new_safe_uninit() -> Self {
-            RwLock::new(T::safe_uninit())
-        }
-    }
-}

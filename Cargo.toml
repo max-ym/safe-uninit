@@ -1,5 +1,5 @@
 [package]
-name = "safe_uninit"
+name = "safe-uninit"
 version = "0.1.0"
 authors = ["Max Naumchyk <max.naumch@gmail.com>"]
 edition = "2018"

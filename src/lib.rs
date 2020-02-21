@@ -1,9 +1,9 @@
 //! Object of the crate is to allow using safe uninitialized values while Rust Standard Library
 //! gets stabilized features for uninitialized values.
-//! For example, currently (Rust 1.41) on nightly version of a compiler one can see
+//! For example, currently (Rust 1.41) on nightly version of a compiler one can see standard
 //! Box::new_uninit() which allows to allocate memory for MaybeUninit values. Basically, this
 //! crate allows creating not 'Maybe' but surely uninitialized values that are safe to use
-//! as they are uninitialized.
+//! despite they are uninitialized.
 //!
 //! Main trait is SafeUninit that indicated the type which can be safely used without
 //! initialization and without further wrappers. It is implemented for all primitive numerical
@@ -38,8 +38,7 @@
 
 #![no_std]
 
-#[cfg(std)]
-extern crate std;
+extern crate alloc;
 
 use core::mem::MaybeUninit;
 
@@ -48,9 +47,7 @@ use core::mem::MaybeUninit;
 /// This trait is unsafe because it is on the programmers side to identify this type as one that
 /// is safe to use uninitialized. Failing to do this correctly can actually cause undefined
 /// behaviour. On the other hand, this trait for the appropriate types allows faster initialization
-/// when optimization is in concern.
-///
-/// This trait is automatically derived for fixed size array that contain SafeUninit objects.
+/// when hard optimization is in concern.
 pub unsafe trait SafeUninit: Sized {
 
     fn safe_uninit() -> Self {
@@ -60,5 +57,23 @@ pub unsafe trait SafeUninit: Sized {
     }
 }
 
-/// Contains implementation for foreign types.
-mod foreign;
+/// Similar to SafeUninit.
+/// This trait can be implemented for types like `Rc` or `Box` and instead mean that
+/// value that this object hold are uninitialized (and not `Rc` or `Box` itself).
+pub unsafe trait SafeUninitWrap: Sized {
+
+    fn safe_uninit() -> Self;
+}
+
+/// To be used with `Vec`-like types. Adds `Vec` a capability to resize it's content while leaving
+/// new values uninitialized.
+pub trait ResizeUninit {
+
+    fn resize_uninit(&mut self, new_len: usize);
+}
+
+/// Contains implementation for foreign types from `core`.
+mod foreign_core;
+
+/// Contains implementation for foreign types from `alloc`.
+mod foreign_alloc;

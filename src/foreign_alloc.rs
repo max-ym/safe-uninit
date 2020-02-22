@@ -6,7 +6,7 @@ use crate::{UninitContent, SafeUninit, ResizeUninit};
 
 unsafe impl<T> ResizeUninit for Vec<T> where T: SafeUninit {
 
-    fn with_uninit(len: usize) -> Self {
+    fn with_uninit_len(len: usize) -> Self {
         let mut v = Vec::with_capacity(len);
         v.resize_uninit(len);
         v
@@ -21,7 +21,7 @@ unsafe impl<T> ResizeUninit for Vec<T> where T: SafeUninit {
 
 unsafe impl<T> ResizeUninit for VecDeque<T> where T: SafeUninit {
 
-    fn with_uninit(len: usize) -> Self {
+    fn with_uninit_len(len: usize) -> Self {
         let mut v = VecDeque::with_capacity(len);
         v.resize_uninit(len);
         v

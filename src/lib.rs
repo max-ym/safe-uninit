@@ -1,11 +1,12 @@
-//! Object of the crate is to allow using safe uninitialized values while Rust Standard Library
-//! gets stabilized features for uninitialized values.
-//! For example, currently (Rust 1.41) on nightly version of a compiler one can see standard
-//! Box::new_uninit() which allows to allocate memory for MaybeUninit values. Basically, this new
+//! Object of the crate is to allow using safe uninitialized values. Many similar features
+//! are already in the Rust `core` library as `MaybeUninit` and functions in standard types.
+//! For example, currently (stable Rust 1.41) as nightly feature of a compiler one can see
+//! Box::new_uninit() which allows to allocate memory with MaybeUninit value. Basically, this new
 //! crate allows creating not 'Maybe' but surely uninitialized values that are safe to use
-//! despite they are uninitialized.
+//! despite they are uninitialized. Because of this they are directly presented as a value without
+//! any wrappers like `MaybeUninit` and no requirement for unsafe block.
 //!
-//! Main trait is SafeUninit that indicated the type which can be safely used without
+//! Main trait is `SafeUninit` which indicated the type which can be safely used without
 //! initialization and without further wrappers. It is implemented for all primitive numerical
 //! types and their atomic variants, for fixed-size arrays of SafeUninit of up to 32 values,
 //! for tuples of SafeUninit objects of up to 12 elements and for unit type `()`.
@@ -13,26 +14,31 @@
 //! This crate also implements traits for `alloc` types where appropriate.
 //!
 //! # Pointers
-//! Pointers are safe to be uninitialized. Even if the values they are pointing to are unsafe.
+//! Pointers are safe to be uninitialized. Even if the values they are pointing to are not
+//! `SafeUninit`.
 //! Firstly, pointers are internally a plain number of type usize which is safe.
 //! Secondly, dereferencing pointers is an unsafe operation anyway and even if pointer
 //! with uninitialized address gets dereferenced this will be done under unsafe block
 //! and programmer will be fully responsible for any consequences of using it.
 //!
-//! # Common types that are unsafe
+//! # Common Types That are Unsafe
+//! These types are not safe to use uninitialized and one should prefer `MaybeUninit`.
 //! ## bool
 //! Boolean valid values are `true` and `false`. If boolean is internally
 //! (as an example) stored as a byte which holds values different from 0 or 1 then this will
-//! lead to unexpected behaviour and thus this type is not safe to use uninitialized.
+//! lead to unexpected behaviour and thus this type is not safe to use uninitialized. One
+//! should use `MaybeUninit` for `bool`.
 //! ## NonZero
 //! Such types as NonZeroI32 are unsafe to leave uninitialized. These types are assumed to
 //! never be zero. Uninitialized value though can occur zero and this will cause undefined
 //! behaviour.
 //!
-//! # Types that might be unsafe
+//! # Might be Unsafe
 //! Here are listed types that can be unsafe and should be further investigated.
 //!
 //! * char
+//! * f32
+//! * f64
 
 #![no_std]
 
@@ -46,6 +52,47 @@ use core::mem::MaybeUninit;
 /// is safe to use uninitialized. Failing to do this correctly can actually cause undefined
 /// behaviour. On the other hand, this trait for the appropriate types allows faster initialization
 /// when hard optimization is in concern.
+///
+/// # Fixed-Size Arrays
+/// Current implementation allows uninitialized fixed-size arrays of SafeUninit of
+/// up to 32 elements.
+/// This is due `stable` compiler lacking `const generics` and will be unlimited when feature
+/// gets stabilized. Still, one can initialize big arrays with easy-enough syntax.
+/// ```
+/// # use safe_uninit::SafeUninit;
+/// // It is possible to omit the type if compiler is able to infer it.
+/// // In this case it cannot so we just tell the type.
+/// let mut small_arr: [usize; 32] = SafeUninit::safe_uninit();
+/// let mut counter = 0;
+/// for i in &small_arr {
+///     println!("{}", i);
+/// }
+///
+/// // The first example will not work for this array as it's len > 32.
+/// // Still, it can be (un)initialized.
+/// // This variant is valid for small arrays too.
+/// let mut big_arr = [usize::safe_uninit(); 256];
+/// let mut counter = 0;
+/// for i in big_arr.iter() {
+///     println!("{}", i);
+/// }
+///
+/// // Also, small arrays can be (un)initialized like this, but big cannot.
+/// let mut small_arr = <[usize; 32]>::safe_uninit();
+/// let mut counter = 0;
+/// for i in &small_arr {
+///     println!("{}", i);
+/// }
+/// ```
+///
+/// # Tuples
+/// Similar to arrays, tuples can be instantiated with uninitialized values in cases where tuples
+/// have no more than 12 values.
+/// ```
+/// # use safe_uninit::*;
+/// let tuple = <(usize, *mut f32, ())>::safe_uninit();
+/// let tuple: (usize, *mut f32, ()) = SafeUninit::safe_uninit();
+/// ```
 pub unsafe trait SafeUninit: Sized {
 
     fn safe_uninit() -> Self {
@@ -56,18 +103,48 @@ pub unsafe trait SafeUninit: Sized {
 }
 
 /// Similar to SafeUninit.
-/// This trait can be implemented for types like `Rc` or `Box` and instead mean that
-/// value that this object hold are uninitialized (and not `Rc` or `Box` itself).
-pub unsafe trait SafeUninitWrap: Sized {
+/// This trait intended to be implemented for types like `Rc` or `Box` and instead mean that
+/// value that this object hold is uninitialized (and not `Rc` or `Box` itself).
+/// ```
+/// # use safe_uninit::*;
+/// use std::rc::Rc;
+///
+/// let rc: Rc<usize> = Rc::uninit_content();
+/// let b: Box<i32> = Box::uninit_content();
+/// ```
+pub unsafe trait SafeUninitContent: Sized {
 
-    fn safe_uninit() -> Self;
+    fn uninit_content() -> Self;
 }
 
 /// To be used with `Vec`-like types. Adds `Vec` a capability to resize it's content while leaving
 /// new values uninitialized.
+/// ```
+/// # use safe_uninit::*;
+/// use std::vec::Vec;
+///
+/// let mut vec: Vec<usize> = Vec::with_capacity(100);
+/// vec.resize_uninit(100); // Now Vec is filled with uninitialized content.
+///
+/// // Shorter variant:
+/// let mut vec: Vec<usize> = Vec::with_uninit(100);
+/// ```
 pub unsafe trait ResizeUninit {
 
+    fn with_uninit(len: usize) -> Self;
+
     fn resize_uninit(&mut self, new_len: usize);
+}
+
+/// Shorthand for types that are SafeUninit.
+/// ```
+/// # use safe_uninit::*;
+/// // This code does the same:
+/// let arr: [usize; 32] = safe_uninit();
+/// let arr: [usize; 32] = SafeUninit::safe_uninit();
+/// ```
+pub fn safe_uninit<T: SafeUninit>() -> T {
+    T::safe_uninit()
 }
 
 /// Contains implementation for foreign types from `core`.

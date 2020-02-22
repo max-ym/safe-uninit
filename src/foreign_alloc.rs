@@ -2,7 +2,7 @@ use alloc::boxed::Box;
 use alloc::rc::Rc;
 use alloc::collections::VecDeque;
 use alloc::vec::Vec;
-use crate::{SafeUninitContent, SafeUninit, ResizeUninit};
+use crate::{UninitContent, SafeUninit, ResizeUninit};
 
 unsafe impl<T> ResizeUninit for Vec<T> where T: SafeUninit {
 
@@ -34,7 +34,7 @@ unsafe impl<T> ResizeUninit for VecDeque<T> where T: SafeUninit {
     }
 }
 
-unsafe impl<T> SafeUninitContent for Box<T> where T: SafeUninit {
+unsafe impl<T> UninitContent for Box<T> where T: SafeUninit {
 
     /// `Box::new()` with safe uninitialized value.
     fn uninit_content() -> Self {
@@ -42,7 +42,7 @@ unsafe impl<T> SafeUninitContent for Box<T> where T: SafeUninit {
     }
 }
 
-unsafe impl<T> SafeUninitContent for Rc<T> where T: SafeUninit {
+unsafe impl<T> UninitContent for Rc<T> where T: SafeUninit {
 
     /// `Rc::new()` with safe uninitialized value.
     fn uninit_content() -> Self {

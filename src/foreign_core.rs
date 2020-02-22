@@ -1,4 +1,4 @@
-use crate::{SafeUninit, SafeUninitContent};
+use crate::{SafeUninit, UninitContent};
 use core::sync::atomic::*;
 
 unsafe impl<T0, T1> SafeUninit for (T0, T1)
@@ -52,7 +52,7 @@ unsafe impl<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> SafeUninit fo
           T5: SafeUninit, T6: SafeUninit, T7: SafeUninit, T8: SafeUninit, T9: SafeUninit,
           T10: SafeUninit, T11: SafeUninit, T12: SafeUninit {}
 
-unsafe impl<T> SafeUninitContent for Option<T> where T: SafeUninit {
+unsafe impl<T> UninitContent for Option<T> where T: SafeUninit {
 
     /// Create safe `Some` value which contains uninitialized value.
     fn uninit_content() -> Self {

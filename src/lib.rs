@@ -7,7 +7,7 @@
 //! despite they are uninitialized. Because of this they are directly presented as a value without
 //! any wrappers like `MaybeUninit` and no requirement for unsafe block.
 //!
-//! Main trait is `SafeUninit` which indicated the type which can be safely used without
+//! Main trait is `SafeUninit` which indicates the type which can be safely used without
 //! initialization and without further wrappers. It is implemented for all primitive integer
 //! types and their atomic variants, for fixed-size arrays of `SafeUninit` of up to 32 values
 //! (but there is a way of creating bigger arrays),
